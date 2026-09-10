@@ -38,6 +38,9 @@ public class Position extends BaseEntity {
     @Column(name = "description", length = 500)
     private String description;
 
+    @Column(name = "level")
+    private Integer level;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 }
