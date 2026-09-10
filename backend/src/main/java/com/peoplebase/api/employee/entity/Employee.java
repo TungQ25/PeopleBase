@@ -33,11 +33,12 @@ import java.time.LocalDate;
         name = "employees",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_employees_employee_code", columnNames = "employee_code"),
-                @UniqueConstraint(name = "uk_employees_email", columnNames = "email")
+                @UniqueConstraint(name = "uk_employees_company_email", columnNames = "company_email")
         },
         indexes = {
                 @Index(name = "idx_employees_department_id", columnList = "department_id"),
-                @Index(name = "idx_employees_position_id", columnList = "position_id")
+                @Index(name = "idx_employees_position_id", columnList = "position_id"),
+                @Index(name = "idx_employees_manager_id", columnList = "manager_id")
         }
 )
 public class Employee extends BaseEntity {
@@ -52,6 +53,16 @@ public class Employee extends BaseEntity {
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
+    @NotBlank
+    @Size(max = 75)
+    @Column(name = "first_name", nullable = false, length = 75)
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 75)
+    @Column(name = "last_name", nullable = false, length = 75)
+    private String lastName;
+
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
@@ -59,11 +70,16 @@ public class Employee extends BaseEntity {
     @Column(name = "gender", length = 10)
     private Gender gender;
 
+    @Email
+    @Size(max = 150)
+    @Column(name = "personal_email", length = 150)
+    private String personalEmail;
+
     @NotBlank
     @Email
     @Size(max = 150)
-    @Column(name = "email", nullable = false, length = 150)
-    private String email;
+    @Column(name = "company_email", nullable = false, length = 150)
+    private String companyEmail;
 
     @Size(max = 20)
     @Column(name = "phone", length = 20)
@@ -74,8 +90,8 @@ public class Employee extends BaseEntity {
     private String address;
 
     @NotNull
-    @Column(name = "join_date", nullable = false)
-    private LocalDate joinDate;
+    @Column(name = "hire_date", nullable = false)
+    private LocalDate hireDate;
 
     @Column(name = "termination_date")
     private LocalDate terminationDate;
@@ -94,4 +110,8 @@ public class Employee extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id", nullable = false)
     private Position position;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private Employee manager;
 }
