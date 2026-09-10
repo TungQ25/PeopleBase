@@ -2,7 +2,6 @@ package com.peoplebase.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Configuration
@@ -10,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class JpaAuditingConfig {
 
     @Bean
-    public AuditorAware<String> auditorAware() {
+    public org.springframework.data.domain.AuditorAware<String> auditorAware() {
         return new SystemAuditorAware();
     }
 }
