@@ -1,6 +1,7 @@
 package com.peoplebase.api.auth.entity;
 
 import com.peoplebase.api.auth.enums.Role;
+import com.peoplebase.api.auth.enums.AccountStatus;
 import com.peoplebase.api.common.entity.BaseEntity;
 import com.peoplebase.api.employee.entity.Employee;
 import jakarta.persistence.Column;
@@ -49,8 +50,10 @@ public class UserAccount extends BaseEntity {
     @Column(name = "role", nullable = false, length = 20)
     private Role role;
 
-    @Column(name = "active", nullable = false)
-    private boolean active = true;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", unique = true)
