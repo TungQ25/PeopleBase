@@ -1,7 +1,11 @@
 package com.peoplebase.api.attendance.entity;
 
 import com.peoplebase.api.attendance.enums.AttendanceStatus;
-import com.peoplebase.api.common.entity.BaseEntity;
+import com.peoplebase.api.common.entity.VersionedEntity;
+import com.peoplebase.api.auth.entity.UserAccount;
+import com.peoplebase.api.common.snapshot.Snapshots.AttendanceSnapshot;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import com.peoplebase.api.employee.entity.Employee;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +41,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_attendances_status", columnList = "status")
         }
 )
-public class Attendance extends BaseEntity {
+public class Attendance extends VersionedEntity {
 
     @NotNull
     @Column(name = "work_date", nullable = false)
@@ -55,11 +59,47 @@ public class Attendance extends BaseEntity {
     private AttendanceStatus status;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
     @Size(max = 500)
     @Column(name = "note", length = 500)
     private String note;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_assignment_id")
+    private EmployeeScheduleAssignment scheduleAssignment;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "closing_id")
+    private AttendanceClosing closing;
+
+    @Column(name = "scheduled_minutes", nullable = false)
+    private Integer scheduledMinutes = 0;
+    @Column(name = "working_minutes", nullable = false)
+    private Integer workingMinutes = 0;
+    @Column(name = "break_minutes", nullable = false)
+    private Integer breakMinutes = 0;
+    @Column(name = "late_minutes", nullable = false)
+    private Integer lateMinutes = 0;
+    @Column(name = "early_leave_minutes", nullable = false)
+    private Integer earlyLeaveMinutes = 0;
+    @Column(name = "absence_minutes", nullable = false)
+    private Integer absenceMinutes = 0;
+    @Column(name = "overtime_minutes", nullable = false)
+    private Integer overtimeMinutes = 0;
+    @Column(name = "approved_overtime_minutes", nullable = false)
+    private Integer approvedOvertimeMinutes = 0;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "overtime_approved_by_id")
+    private UserAccount overtimeApprovedBy;
+    @Column(name = "overtime_approved_at")
+    private LocalDateTime overtimeApprovedAt;
+    @Column(name = "overtime_approval_reason", length = 2000)
+    private String overtimeApprovalReason;
+    @Column(name = "calculation_version", length = 100)
+    private String calculationVersion;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "calculation_snapshot", columnDefinition = "jsonb")
+    private AttendanceSnapshot calculationSnapshot;
 }

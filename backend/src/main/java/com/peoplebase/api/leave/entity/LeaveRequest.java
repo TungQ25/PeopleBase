@@ -1,80 +1,48 @@
 package com.peoplebase.api.leave.entity;
 
-import com.peoplebase.api.common.entity.BaseEntity;
+import com.peoplebase.api.common.entity.VersionedEntity;
+import com.peoplebase.api.common.snapshot.Snapshots.LeavePolicySnapshot;
 import com.peoplebase.api.employee.entity.Employee;
-import com.peoplebase.api.leave.enums.LeaveRequestStatus;
-import com.peoplebase.api.leave.enums.LeaveType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.peoplebase.api.leave.enums.LeaveUnit;
+import com.peoplebase.api.workflow.entity.WorkflowRequest;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
+/** WorkflowRequest owns requester, submission and status; decisions own approval history. */
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(
-        name = "leave_requests",
-        indexes = {
-                @Index(name = "idx_leave_requests_requester_id", columnList = "requester_id"),
-                @Index(name = "idx_leave_requests_approver_id", columnList = "approver_id"),
-                @Index(name = "idx_leave_requests_status", columnList = "status"),
-                @Index(name = "idx_leave_requests_start_date", columnList = "start_date"),
-                @Index(name = "idx_leave_requests_end_date", columnList = "end_date")
-        }
-)
-public class LeaveRequest extends BaseEntity {
-
-    @NotNull
-    @Column(name = "start_date", nullable = false)
+@Table(name = "leave_requests", uniqueConstraints =
+        @UniqueConstraint(name = "uk_leave_requests_workflow", columnNames = "workflow_request_id"))
+public class LeaveRequest extends VersionedEntity {
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "workflow_request_id", nullable = false, unique = true)
+    private WorkflowRequest workflowRequest;
+    @Column(name = "start_date")
     private LocalDate startDate;
-
-    @NotNull
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private LocalDate endDate;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "leave_type", nullable = false, length = 20)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "leave_type_id")
     private LeaveType leaveType;
-
-    @NotBlank
-    @Size(max = 1000)
-    @Column(name = "reason", nullable = false, length = 1000)
+    @Column(name = "reason", length = 1000)
     private String reason;
-
-    @NotNull
+    @Column(name = "total_units", precision = 12, scale = 4)
+    private BigDecimal totalUnits;
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private LeaveRequestStatus status = LeaveRequestStatus.PENDING;
+    @Column(name = "unit", nullable = false, length = 40)
+    private LeaveUnit unit = LeaveUnit.DAY;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "policy_snapshot", columnDefinition = "jsonb")
+    private LeavePolicySnapshot policySnapshot;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
-    private Employee requester;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approver_id")
-    private Employee approver;
-
-    @Size(max = 1000)
-    @Column(name = "decision_note", length = 1000)
-    private String decisionNote;
-
-    @Column(name = "decided_at")
-    private LocalDateTime decidedAt;
+    @Transient
+    public Employee getRequester() { return workflowRequest.getTargetEmployee(); }
 }
