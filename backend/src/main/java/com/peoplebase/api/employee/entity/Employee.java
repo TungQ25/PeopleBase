@@ -1,6 +1,7 @@
 package com.peoplebase.api.employee.entity;
 
-import com.peoplebase.api.common.entity.BaseEntity;
+import com.peoplebase.api.common.entity.VersionedEntity;
+import com.peoplebase.api.organization.entity.Team;
 import com.peoplebase.api.employee.enums.EmployeeStatus;
 import com.peoplebase.api.employee.enums.Gender;
 import com.peoplebase.api.organization.entity.Department;
@@ -24,6 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -41,7 +43,7 @@ import java.time.LocalDate;
                 @Index(name = "idx_employees_manager_id", columnList = "manager_id")
         }
 )
-public class Employee extends BaseEntity {
+public class Employee extends VersionedEntity {
 
     @NotBlank
     @Size(max = 30)
@@ -75,10 +77,9 @@ public class Employee extends BaseEntity {
     @Column(name = "personal_email", length = 150)
     private String personalEmail;
 
-    @NotBlank
     @Email
     @Size(max = 150)
-    @Column(name = "company_email", nullable = false, length = 150)
+    @Column(name = "company_email", length = 150)
     private String companyEmail;
 
     @Size(max = 20)
@@ -99,19 +100,54 @@ public class Employee extends BaseEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private EmployeeStatus status = EmployeeStatus.ACTIVE;
+    private EmployeeStatus status = EmployeeStatus.PENDING_ONBOARDING;
+
+    @Column(name = "requires_system_access", nullable = false)
+    private boolean requiresSystemAccess;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "position_id", nullable = false)
     private Position position;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private Employee manager;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
+
+    // Payroll-only fields: intentionally excluded from the general employee DTOs.
+    @Column(name = "tax_code", length = 100)
+    private String taxCode;
+
+    @Column(name = "insurance_number", length = 100)
+    private String insuranceNumber;
+
+    @Column(name = "insurance_base_salary", precision = 18, scale = 2)
+    private BigDecimal insuranceBaseSalary;
+
+    @Column(name = "tax_residency_type", length = 255)
+    private String taxResidencyType;
+
+    @Column(name = "dependent_count", nullable = false)
+    private Integer dependentCount = 0;
+
+    @Column(name = "bank_name", length = 255)
+    private String bankName;
+
+    @Column(name = "bank_account_number", length = 100)
+    private String bankAccountNumber;
+
+    @Column(name = "bank_account_holder", length = 255)
+    private String bankAccountHolder;
+
+    @Column(name = "payroll_currency", length = 3)
+    private String payrollCurrency;
 }

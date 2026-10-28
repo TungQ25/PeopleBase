@@ -69,11 +69,24 @@ public class Contract extends BaseEntity {
     private ContractStatus status = ContractStatus.DRAFT;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
     @Size(max = 1000)
     @Column(name = "note", length = 1000)
     private String note;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "previous_contract_id")
+    private Contract previousContract;
+
+    @Column(name = "signed_date")
+    private LocalDate signedDate;
+
+    @Column(name = "terminated_effective_date")
+    private LocalDate terminatedEffectiveDate;
+
+    @Column(name = "termination_reason", length = 2000)
+    private String terminationReason;
 }
